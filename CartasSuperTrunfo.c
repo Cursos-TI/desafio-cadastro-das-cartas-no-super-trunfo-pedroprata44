@@ -1,111 +1,184 @@
 #include <stdio.h>
+#include <math.h> // Necessário para evitar o warning de 'infinidade' em operações de divisão por zero.
 
-float calculaDensidadePopulacional(int populacaoCidade, float areaCidade){
-    return populacaoCidade / areaCidade;
-}
+// Definição da estrutura da Carta (Cidade), baseada nos requisitos do Nível Mestre.
+typedef struct {
+    unsigned long int populacao; // Nível Mestre: unsigned long int
+    float area;
+    float pib;
+    int pontos_turisticos;
+    float densidade_populacional; // Nível Aventureiro: Calculado
+    float pib_per_capita;         // Nível Aventureiro: Calculado
+    float super_poder;            // Nível Mestre: Calculado
+} Carta;
 
-float calculaPibPercapita(float pibCidade, int populacaoCidade){
-    return pibCidade / populacaoCidade;
-}
+// =======================================================
+// FUNÇÕES AUXILIARES DE CADA NÍVEL
+// =======================================================
 
-void leDadosCarta(char *nome, int *populacao, float *area, float *pib, int *pontosTuristicos){
-    printf("Nome da carta:\n");
-    scanf("%s", nome);
-    printf("População:\n");
-    scanf(" %d", populacao);
-    printf("Área:\n");
-    scanf(" %f", area);
-    printf("PIB:\n");
-    scanf(" %f", pib);
-    printf("Pontos turísticos:\n");
-    scanf(" %d", pontosTuristicos);
+// Função para cadastrar uma carta (Nível Novato: Entrada de Dados)
+void cadastrar_carta(Carta *c, int numero) {
+    printf("--- Cadastro da Carta %d ---\n", numero);
+    
+    // Leitura dos atributos base
+    printf("População (unsigned long int): ");
+    scanf("%lu", &c->populacao);
+    
+    printf("Área (float): ");
+    scanf("%f", &c->area);
+    
+    printf("PIB (float): ");
+    scanf("%f", &c->pib);
+    
+    printf("Número de pontos turísticos (int): ");
+    scanf("%d", &c->pontos_turisticos);
+    
     printf("\n");
 }
 
-void exibeDadosCarta(char *nome, int populacao, float area, float pib, int pontosTuristicos)
-{
-    printf("Nome da carta: %s\n", nome);
-    printf("População: %d\n", populacao);
-    printf("Área: %f\n", area);
-    printf("PIB: %f\n", pib);
-    printf("Pontos turísticos: %d\n", pontosTuristicos);
-    printf("Densidade populacional: %f\n", calculaDensidadePopulacional(populacao, area));
-    printf("PIB percapita: %f\n", calculaPibPercapita(pib, populacao));
-    printf("\n");
+// Função para calcular atributos derivados (Nível Aventureiro)
+void calcular_atributos_derivados(Carta *c) {
+    // Cálculo da Densidade Populacional: População / Área
+    // Garante que a área não é zero para evitar divisão por zero
+    if (c->area > 0.0) {
+        c->densidade_populacional = (float)c->populacao / c->area;
+    } else {
+        c->densidade_populacional = 0.0;
+    }
+
+    // Cálculo do PIB per Capita: PIB / População
+    // Garante que a população não é zero
+    if (c->populacao > 0) {
+        c->pib_per_capita = c->pib / (float)c->populacao;
+    } else {
+        c->pib_per_capita = 0.0;
+    }
+
+    // Nível Mestre: Cálculo do Super Poder
+    // Soma de todos os atributos, com a densidade populacional *invertida* (1/densidade)
+    float densidade_invertida = 0.0;
+    if (c->densidade_populacional > 0.0) {
+        densidade_invertida = 1.0f / c->densidade_populacional;
+    }
+
+    c->super_poder = (float)c->populacao + 
+                      c->area + 
+                      c->pib + 
+                      (float)c->pontos_turisticos +
+                      densidade_invertida + // Densidade Invertida
+                      c->pib_per_capita;
 }
 
-float calculaSuperPoderCarta(int populacao, float area, float pib, int pontosTuristicos, float pibPercapita, float densidadePopulacional)
-{
-    return (float) populacao + area + (float) pib + (float) pontosTuristicos + pibPercapita - densidadePopulacional;
-}
+// Função para exibir os dados de uma carta (Nível Novato: Saída de Dados)
+void exibir_carta(const Carta *c, int numero) {
+    printf("--- Dados da Carta %d ---\n", numero);
+    printf("População: %lu\n", c->populacao);
+    printf("Área: %.2f\n", c->area);
+    printf("PIB: %.2f\n", c->pib);
+    printf("Pontos Turísticos: %d\n", c->pontos_turisticos);
 
-void comparaCartas(int populacaoCarta1, int populacaoCarta2
-, float areaCarta1, float areaCarta2
-, float pibCarta1, float pibCarta2
-, int pontosTuristicosCarta1, int pontosTuristicosCarta2
-, float superPoderCarta1, float superPoderCarta2)
-{
-    printf("Comparação das cartas:\n");
-    if(populacaoCarta1 > populacaoCarta2) printf("População: Carta 1 venceu\n");
-    else printf("População: Carta 2 venceu\n");
+    // Nível Aventureiro: Exibe atributos calculados
+    printf("\n[ATRIBUTOS CALCULADOS]\n");
+    printf("Densidade Populacional: %.2f hab/un\n", c->densidade_populacional);
+    printf("PIB per Capita: %.2f\n", c->pib_per_capita);
     
-    if(areaCarta1 > areaCarta2) printf("Área: Carta 1 venceu\n");
-    else printf("Área: Carta 2 venceu\n");
-
-    if(pibCarta1 > pibCarta2) printf("PIB: Carta 1 venceu\n");
-    else printf("PIB: Carta 2 venceu\n");
-
-    if(pontosTuristicosCarta1 > pontosTuristicosCarta2) printf("Pontos turísticos: Carta 1 venceu\n");
-    else printf("Pontos turísticos: Carta 2 venceu\n");
-
-    if(calculaDensidadePopulacional(populacaoCarta1, areaCarta1) 
-        < calculaDensidadePopulacional(populacaoCarta2, areaCarta2)) printf("Densidade populacional: Carta 1 venceu\n");
-    else printf("Densidade populacional: Carta 2 venceu\n");
-
-    if(calculaPibPercapita(pibCarta1, populacaoCarta1) 
-        > calculaPibPercapita(pibCarta2, populacaoCarta2)) printf("Pib percapita: Carta 1 venceu\n");
-    else printf("Pib percapita: Carta 2 venceu\n");
-
-    if(superPoderCarta1 > superPoderCarta2) printf("Super poder: Carta 1 venceu\n");
-    else printf("Super poder: Carta 2 venceu\n");
+    // Nível Mestre: Exibe Super Poder
+    printf("Super Poder: %.2f\n", c->super_poder);
+    printf("--------------------------\n\n");
 }
 
-int main() 
-{
-    char nomeCarta1 [50];
-    int populacaoCarta1;
-    float areaCarta1;
-    float pibCarta1;
-    int pontosTuristicosCarta1;
-    float densidadePopulacionalCarta1;
-    float pibPercapitaCarta1;
-    float superPoderCarta1;
-
-    char nomeCarta2 [50];
-    int populacaoCarta2;
-    float areaCarta2;
-    float pibCarta2;
-    int pontosTuristicosCarta2;
-    float densidadePopulacionalCarta2;
-    float pibPercapitaCarta2;
-    float superPoderCarta2;
-
-    printf("SuperTrunfo!\n");
-    printf("Cadastre a primeira carta:\n");
-    leDadosCarta(nomeCarta1, &populacaoCarta1, &areaCarta1, &pibCarta1, &pontosTuristicosCarta1);
-    printf("Cadastre a segunda carta:\n");
-    leDadosCarta(nomeCarta2, &populacaoCarta2, &areaCarta2, &pibCarta2, &pontosTuristicosCarta2);
+// Função de comparação (Nível Mestre)
+// Retorna 1 se Carta 1 vence, 0 se Carta 2 vence, -1 se empate
+int comparar(float c1_valor, float c2_valor, int vence_o_maior) {
+    if (c1_valor == c2_valor) {
+        return -1; // Empate
+    }
     
-    superPoderCarta1 = calculaSuperPoderCarta(populacaoCarta1, areaCarta1, pibCarta1, pontosTuristicosCarta1,
-    calculaPibPercapita(pibCarta1, populacaoCarta1), calculaDensidadePopulacional(populacaoCarta1, areaCarta1));
+    if (vence_o_maior) {
+        return (c1_valor > c2_valor) ? 1 : 0;
+    } else {
+        return (c1_valor < c2_valor) ? 1 : 0; // Vence o menor (para Densidade)
+    }
+}
 
-    superPoderCarta2 = calculaSuperPoderCarta(populacaoCarta2, areaCarta2, pibCarta2, pontosTuristicosCarta2,
-    calculaPibPercapita(pibCarta2, populacaoCarta2), calculaDensidadePopulacional(populacaoCarta2, areaCarta2));
+// Função para exibir o resultado da comparação
+void exibir_comparacao(const char *atributo, int resultado) {
+    printf("-> %s: ", atributo);
+    if (resultado == 1) {
+        printf("Carta 1 VENCE (1)\n");
+    } else if (resultado == 0) {
+        printf("Carta 2 VENCE (0)\n");
+    } else {
+        printf("EMPATE\n");
+    }
+}
 
-    comparaCartas(populacaoCarta1, populacaoCarta2, areaCarta1, areaCarta2, pibCarta1, pibCarta2,
-         pontosTuristicosCarta1, pontosTuristicosCarta2, superPoderCarta1, superPoderCarta2);
 
-    // exibeDadosCarta(nomeCarta1, populacaoCarta1, areaCarta1, pibCarta1, pontosTuristicosCarta1);
-    // exibeDadosCarta(nomeCarta2, populacaoCarta2, areaCarta2, pibCarta2, pontosTuristicosCarta2);
+// =======================================================
+// FUNÇÃO PRINCIPAL
+// =======================================================
+
+int main() {
+    Carta carta1;
+    Carta carta2;
+
+    printf("=========================================================\n");
+    printf("        🃏 Desafio Super Trunfo - Países\n");
+    printf("=========================================================\n\n");
+
+    // ----------------------------------------
+    // NÍVEL NOVATO: Cadastro Básico (Entrada)
+    // ----------------------------------------
+    cadastrar_carta(&carta1, 1);
+    cadastrar_carta(&carta2, 2);
+
+    // ----------------------------------------
+    // NÍVEL AVENTUREIRO: Cálculo de Atributos
+    // ----------------------------------------
+    calcular_atributos_derivados(&carta1);
+    calcular_atributos_derivados(&carta2);
+    
+    printf("========================================\n");
+    printf("       Exibição de Atributos (Níveis Novato e Aventureiro)\n");
+    printf("========================================\n");
+
+    // NÍVEL NOVATO: Saída de Dados (agora com atributos calculados)
+    exibir_carta(&carta1, 1);
+    exibir_carta(&carta2, 2);
+
+    // ----------------------------------------
+    // NÍVEL MESTRE: Comparação e Super Poder
+    // ----------------------------------------
+    printf("========================================\n");
+    printf("       Comparação de Cartas (Nível Mestre)\n");
+    printf("========================================\n");
+    
+    // Comparação de População (Vence o MAIOR)
+    exibir_comparacao("População", comparar((float)carta1.populacao, (float)carta2.populacao, 1));
+    
+    // Comparação de Área (Vence o MAIOR)
+    exibir_comparacao("Área", comparar(carta1.area, carta2.area, 1));
+    
+    // Comparação de PIB (Vence o MAIOR)
+    exibir_comparacao("PIB", comparar(carta1.pib, carta2.pib, 1));
+    
+    // Comparação de Pontos Turísticos (Vence o MAIOR)
+    exibir_comparacao("Pontos Turísticos", comparar((float)carta1.pontos_turisticos, (float)carta2.pontos_turisticos, 1));
+    
+    // Comparação de PIB per Capita (Vence o MAIOR)
+    exibir_comparacao("PIB per Capita", comparar(carta1.pib_per_capita, carta2.pib_per_capita, 1));
+    
+    // Comparação de Densidade Populacional (Vence o MENOR)
+    exibir_comparacao("Densidade Populacional", comparar(carta1.densidade_populacional, carta2.densidade_populacional, 0));
+    
+    printf("----------------------------------------\n");
+    
+    // Comparação do Super Poder (Vence o MAIOR)
+    exibir_comparacao("SUPER PODER", comparar(carta1.super_poder, carta2.super_poder, 1));
+
+    printf("========================================\n");
+    printf("       Simulação Concluída!\n");
+    printf("========================================\n");
+
     return 0;
 }
